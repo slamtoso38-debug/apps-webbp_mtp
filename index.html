@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BP MTP ITTIBAUSSALAF - Management Disiplin Amanah</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            background: radial-gradient(at top left, #f0fdf4 0%, #eef2ff 100%);
+            min-height: 100vh;
+        }
+        .sidebar-gradient {
+            background: linear-gradient(180deg, #064e3b 0%, #065f46 100%);
+        }
+        .card-premium {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+        }
+        .card-premium:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 30px -10px rgba(16, 185, 129, 0.1);
+        }
+        .btn-gold {
+            background: linear-gradient(135deg, #fbbf24 0%, #d97706 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(217, 119, 6, 0.3);
+        }
+        .btn-emerald {
+            background: linear-gradient(135deg, #10b981 0%, #047857 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+        }
+        .nav-btn.active {
+            background: rgba(255, 255, 255, 0.15);
+            color: white !important;
+            border-left: 4px solid #fbbf24;
+        }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #10b981; border-radius: 10px; }
+
+        .input-compact {
+            width: 100%;
+            padding: 0.5rem 0.75rem !important;
+            font-size: 0.75rem !important;
+            border-radius: 0.75rem !important;
+            height: 38px !important;
+            font-weight: 600;
+        }
+        .label-compact {
+            font-size: 9px !important;
+            font-weight: 800;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 2px;
+            display: block;
+            margin-left: 4px;
+        }
+    </style>
+</head>
+<body class="text-slate-800">
+
+    <nav class="fixed bottom-0 lg:left-0 lg:top-0 w-full lg:w-72 sidebar-gradient z-50 lg:m-4 lg:rounded-3xl shadow-2xl overflow-hidden">
+        <div class="p-8 hidden lg:block">
+            <div class="flex items-center gap-3 mb-2">
+                <div class="p-2 bg-emerald-400/20 rounded-xl">
+                    <i data-lucide="shield-check" class="text-emerald-300 w-8 h-8"></i>
+                </div>
+                <h1 class="text-2xl font-extrabold text-white tracking-tight">BP-MTP</h1>
+            </div>
+            <p class="text-emerald-200/60 text-[11px] font-medium tracking-[0.2em] uppercase">Sistem Disiplin Santri</p>
+        </div>
+
+        <div class="flex lg:flex-col justify-around lg:justify-start p-4 lg:p-6 gap-2">
+            <button onclick="showPage('dashboard')" class="nav-btn active flex items-center gap-4 p-4 rounded-2xl text-emerald-100/70 hover:bg-white/5 transition-all w-full">
+                <i data-lucide="layout-dashboard"></i> <span class="hidden lg:block font-semibold">Dashboard</span>
+            </button>
+            <button onclick="showPage('registrasi')" class="nav-btn flex items-center gap-4 p-4 rounded-2xl text-emerald-100/70 hover:bg-white/5 transition-all w-full">
+                <i data-lucide="user-plus"></i> <span class="hidden lg:block font-semibold">Registrasi Santri</span>
+            </button>
+            <button onclick="showPage('input')" class="nav-btn flex items-center gap-4 p-4 rounded-2xl text-emerald-100/70 hover:bg-white/5 transition-all w-full">
+                <i data-lucide="pencil-line"></i> <span class="hidden lg:block font-semibold">Input Pelanggaran</span>
+            </button>
+            <button onclick="showPage('data')" class="nav-btn flex items-center gap-4 p-4 rounded-2xl text-emerald-100/70 hover:bg-white/5 transition-all w-full">
+                <i data-lucide="database"></i> <span class="hidden lg:block font-semibold">Data & Laporan</span>
+            </button>
+            
+            <div class="mt-10 pt-6 border-t border-emerald-400/20 hidden lg:block">
+                <button onclick="syncData()" class="btn-gold flex items-center justify-center gap-3 p-4 rounded-2xl w-full font-bold">
+                    <i data-lucide="cloud-lightning"></i> Sinkronisasi
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <main class="lg:ml-80 p-6 lg:p-10">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-6">
+            <div>
+                <h2 id="page-title" class="text-4xl font-extrabold text-slate-900 tracking-tight">Ahlan Wa Sahlan!</h2>
+                <div class="flex items-center gap-2 mt-2 text-emerald-700">
+                    <i data-lucide="quote" class="w-4 h-4 italic"></i>
+                    <p class="italic font-medium">"Kedisiplinan adalah jembatan antara cita-cita dan pencapaian."</p>
+                </div>
+            </div>
+            <div class="card-premium p-3 rounded-2xl flex items-center gap-4 pr-6">
+                <div class="w-12 h-12 bg-indigo-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-indigo-200">
+                    <i data-lucide="user-check"></i>
+                </div>
+                <div>
+                    <p class="text-xs font-bold text-slate-400 uppercase tracking-widest">Administrator</p>
+                    <p class="font-bold text-slate-800">ABU NU'MAN</p>
+                </div>
+            </div>
+        </div>
+
+        <section id="page-dashboard" class="page-content animate-in fade-in duration-500">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-10">
+                <div class="card-premium p-8 rounded-[2rem] relative overflow-hidden group">
+                    <p class="text-slate-500 font-semibold mb-1 uppercase text-xs tracking-wider">Total Kasus</p>
+                    <h3 class="text-5xl font-black text-emerald-600" id="stat-total">0</h3>
+                </div>
+                <div class="card-premium p-8 rounded-[2rem] relative overflow-hidden group">
+                    <p class="text-slate-500 font-semibold mb-1 uppercase text-xs tracking-wider">Pelanggaran Berat</p>
+                    <h3 class="text-5xl font-black text-red-500" id="stat-berat">0</h3>
+                </div>
+                <div class="card-premium p-8 rounded-[2rem] relative overflow-hidden group">
+                    <p class="text-slate-500 font-semibold mb-1 uppercase text-xs tracking-wider">Poin Akumulasi</p>
+                    <h3 class="text-5xl font-black text-amber-500" id="stat-poin">0</h3>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div class="card-premium p-6 rounded-[2rem]">
+                    <h4 class="text-sm font-black text-slate-700 uppercase mb-4 flex items-center gap-2">
+                        <i data-lucide="trending-up" class="w-4 h-4 text-emerald-500"></i> Tren Pelanggaran (7 Hari Terakhir)
+                    </h4>
+                    <canvas id="lineChart" height="200"></canvas>
+                </div>
+                <div class="card-premium p-6 rounded-[2rem]">
+                    <h4 class="text-sm font-black text-slate-700 uppercase mb-4 flex items-center gap-2">
+                        <i data-lucide="pie-chart" class="w-4 h-4 text-amber-500"></i> Persentase Kategori
+                    </h4>
+                    <div class="max-w-[250px] mx-auto">
+                        <canvas id="pieChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="page-registrasi" class="page-content hidden max-w-7xl mx-auto space-y-8">
+            <div class="card-premium p-6 rounded-[2rem] border-b-4 border-indigo-500 bg-white/80">
+                <div class="flex items-center gap-3 mb-4">
+                    <div class="p-2 bg-indigo-100 text-indigo-700 rounded-xl">
+                        <i data-lucide="user-plus" class="w-5 h-5"></i>
+                    </div>
+                    <h3 class="text-lg font-black text-slate-800 uppercase tracking-tight">Formulir Santri Baru</h3>
+                </div>
+                
+                <form id="form-santri" class="space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="space-y-1">
+                            <label class="label-compact">NIS (Nomor Induk)</label>
+                            <input type="text" id="s-nis" class="input-compact bg-slate-50 border-none outline-none shadow-inner" placeholder="Contoh: 2024001" required>
+                        </div>
+                        <div class="space-y-1">
+                            <label class="label-compact">Nama Lengkap</label>
+                            <input type="text" id="s-nama" class="input-compact bg-slate-50 border-none outline-none shadow-inner" placeholder="Sesuai Ijazah" required>
+                        </div>
+                        <div class="space-y-1">
+                            <label class="label-compact">Kelas / Marhalah</label>
+                            <input type="text" id="s-kelas" class="input-compact bg-slate-50 border-none outline-none shadow-inner" placeholder="7A / Madinah">
+                        </div>
+                    </div>
+                    <div class="flex justify-end">
+                        <button type="submit" class="bg-indigo-600 text-white px-6 py-2 rounded-xl font-bold uppercase text-xs hover:bg-indigo-700 transition-all shadow-lg flex items-center gap-2">
+                            <i data-lucide="save" class="w-4 h-4"></i> Simpan Santri
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="card-premium rounded-[2rem] overflow-hidden">
+                <div class="p-4 bg-indigo-50 border-b border-indigo-100 flex justify-between items-center">
+                    <h4 class="text-xs font-black text-indigo-900 uppercase tracking-widest">Daftar Santri Terdaftar</h4>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left">
+                        <thead class="bg-slate-800 text-white text-[10px] uppercase font-black">
+                            <tr>
+                                <th class="p-4">Nama Santri</th>
+                                <th class="p-4">Kelas</th>
+                                <th class="p-4 text-center">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-santri-list" class="text-xs font-semibold divide-y divide-slate-100 bg-white">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <section id="page-input" class="page-content hidden max-w-7xl mx-auto space-y-6">
+            <div class="card-premium p-6 rounded-[2rem] border-b-4 border-emerald-500 bg-white/80">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center gap-3">
+                        <div class="p-2 bg-emerald-100 text-emerald-700 rounded-xl">
+                            <i data-lucide="clipboard-edit" class="w-5 h-5"></i>
+                        </div>
+                        <h3 class="text-lg font-black text-slate-800 uppercase tracking-tight">Catat Pelanggaran Harian</h3>
+                    </div>
+                    <div class="text-[10px] font-bold text-slate-400 bg-slate-100 px-3 py-1 rounded-full" id="live-clock">Memuat...</div>
+                </div>
+                
+                <form id="form-pelanggaran" class="space-y-4">
+                    <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
+                        <div class="space-y-1">
+                            <label class="label-compact">Nama Santri</label>
+                            <input type="text" id="input-nama" list="list-santri" class="input-compact bg-slate-50 border-none outline-none" placeholder="Cari Nama..." required>
+                        </div>
+                        <div class="space-y-1">
+                            <label class="label-compact">Kelas</label>
+                            <input type="text" id="input-kelas" class="input-compact bg-slate-200 border-none outline-none cursor-not-allowed" readonly placeholder="Otomatis">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="label-compact">Kategori</label>
+                            <select id="input-kategori" class="input-compact bg-slate-50 border-none outline-none" onchange="updateSubJenis()">
+                                <option value="">-- Pilih --</option>
+                                <option value="Ringan" data-poin="5">🟢 Ringan (5)</option>
+                                <option value="Sedang" data-poin="25">🟡 Sedang (25)</option>
+                                <option value="Berat" data-poin="75">🔴 Berat (75)</option>
+                            </select>
+                        </div>
+                        <div class="space-y-1">
+                            <label class="label-compact">Jenis Pelanggaran</label>
+                            <select id="input-jenis" class="input-compact bg-slate-50 border-none outline-none">
+                                <option value="">Pilih Kategori...</option>
+                            </select>
+                        </div>
+                        <div class="space-y-1">
+                            <label class="label-compact">Poin</label>
+                            <input type="number" id="input-poin-manual" class="input-compact bg-amber-50 border-amber-200 border text-amber-700 outline-none" placeholder="0">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3 items-end">
+                        <div class="md:col-span-1 space-y-1">
+                            <label class="label-compact">Kronologi Singkat</label>
+                            <input type="text" id="input-kronologi" class="input-compact bg-slate-50 border-none outline-none" placeholder="Detail kejadian...">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="label-compact">Pelapor</label>
+                            <input type="text" id="input-pelapor" class="input-compact bg-slate-50 border-none outline-none" placeholder="Nama Musyrif">
+                        </div>
+                        <button type="submit" class="btn-emerald h-[38px] rounded-xl font-black uppercase text-[10px] flex items-center justify-center gap-2 shadow-lg">
+                            <i data-lucide="send" class="w-3 h-3"></i> Simpan Catatan
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="card-premium rounded-[2rem] overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead class="bg-emerald-700 text-white">
+                            <tr class="text-[9px] font-black uppercase tracking-widest">
+                                <th class="p-3">Waktu</th>
+                                <th class="p-3">Nama Santri</th>
+                                <th class="p-3">Kelas</th>
+                                <th class="p-3">kategori</th>
+                                <th class="p-3">Pelanggaran</th>
+                                <th class="p-3">Poin</th>
+                                <th class="p-3">kronologi</th>
+                                <th class="p-3">pelapor</th>
+                                <th class="p-3 text-center">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-body-input" class="divide-y divide-slate-100 bg-white"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <section id="page-data" class="page-content hidden">
+            <div class="card-premium rounded-[2.5rem] overflow-hidden p-8">
+                <h3 class="text-xl font-black mb-6">Database Pelanggaran Keseluruhan</h3>
+                <div id="full-data-list" class="space-y-4"></div>
+            </div>
+        </section>
+    </main>
+
+    <datalist id="list-santri"></datalist>
+
+    <script>
+        // MASUKKAN URL WEB APP ANDA DI SINI
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbydId1EILwrBMfqO4duyeAtgDGp8M5dFOtW1L_ryLjpV9OPmqDYeU_tSaWWdmqtJyQq/exec";
+
+        let databaseSantri = JSON.parse(localStorage.getItem('profil_santri')) || {};
+        let dataPelanggaran = JSON.parse(localStorage.getItem('bp_data')) || [];
+        let lineChart, pieChart;
+
+        const daftarPelanggaran = {
+            "Ringan": ["Terlambat Berjamaah", "Kamar Kotor", "Pakaian Tidak Rapi", "Ghasab Sandal", "Gaduh"],
+            "Sedang": ["Bolos Kegiatan", "Bahasa Indonesia", "Keluar Tanpa Izin", "Piket Tidak Jalan"],
+            "Berat": ["Mencuri", "Merokok/Vaping", "Berkelahi", "Membawa HP", "Kabur", "Asusila"]
+        };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            initCharts();
+            updateDashboard();
+            updateLiveClock();
+            setInterval(updateLiveClock, 1000);
+            updateDatalistSantri();
+            renderTableSantri();
+        });
+
+        async function syncData() {
+            if(!SCRIPT_URL.includes("exec")) return alert("Silakan masukkan URL Web App yang benar.");
+            const btn = document.querySelector('button[onclick="syncData()"]');
+            btn.innerHTML = "Memuat...";
+            try {
+                const res = await fetch(SCRIPT_URL);
+                const cloudSantri = await res.json();
+                databaseSantri = cloudSantri;
+                localStorage.setItem('profil_santri', JSON.stringify(databaseSantri));
+                updateDatalistSantri();
+                renderTableSantri();
+                alert("✅ Sinkronisasi Berhasil!");
+            } catch (e) {
+                alert("❌ Gagal Sinkron. Periksa Koneksi/URL.");
+            } finally {
+                btn.innerHTML = '<i data-lucide="cloud-lightning"></i> Sinkronisasi';
+                lucide.createIcons();
+            }
+        }
+
+        function initCharts() {
+            const ctxLine = document.getElementById('lineChart').getContext('2d');
+            lineChart = new Chart(ctxLine, {
+                type: 'line',
+                data: { labels: [], datasets: [{ label: 'Jumlah Kasus', data: [], borderColor: '#10b981', tension: 0.4, fill: true, backgroundColor: 'rgba(16, 185, 129, 0.1)' }] },
+                options: { responsive: true, plugins: { legend: { display: false } } }
+            });
+
+            const ctxPie = document.getElementById('pieChart').getContext('2d');
+            pieChart = new Chart(ctxPie, {
+                type: 'doughnut',
+                data: { labels: ['Ringan', 'Sedang', 'Berat'], datasets: [{ data: [0, 0, 0], backgroundColor: ['#10b981', '#f59e0b', '#ef4444'] }] },
+                options: { responsive: true, cutout: '70%' }
+            });
+        }
+
+        function showPage(pageId) {
+            document.querySelectorAll('.page-content').forEach(p => p.classList.add('hidden'));
+            document.getElementById('page-' + pageId).classList.remove('hidden');
+            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+            if(event && event.currentTarget) event.currentTarget.classList.add('active');
+            if(pageId === 'input') renderTables();
+            if(pageId === 'registrasi') renderTableSantri();
+            if(pageId === 'dashboard') updateDashboard();
+        }
+
+        function updateLiveClock() {
+            const clockEl = document.getElementById('live-clock');
+            if(clockEl) {
+                const now = new Date();
+                clockEl.innerText = now.toLocaleString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+            }
+        }
+
+        function renderTableSantri() {
+            const tableBody = document.getElementById('table-santri-list');
+            tableBody.innerHTML = Object.entries(databaseSantri).map(([nama, kelas]) => `
+                <tr>
+                    <td class="p-4 font-bold text-slate-700 uppercase">${nama}</td>
+                    <td class="p-4 text-slate-500">${kelas}</td>
+                    <td class="p-4 text-center">
+                        <button onclick="hapusSantri('${nama}')" class="text-red-400 hover:text-red-600 transition-colors">
+                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+            lucide.createIcons();
+        }
+
+        function hapusSantri(nama) {
+            if(confirm(`Hapus data santri: ${nama}?`)) {
+                delete databaseSantri[nama];
+                localStorage.setItem('profil_santri', JSON.stringify(databaseSantri));
+                renderTableSantri();
+                updateDatalistSantri();
+            }
+        }
+
+        document.getElementById('form-santri').onsubmit = async function(e) {
+            e.preventDefault();
+            const nama = document.getElementById('s-nama').value;
+            const kelas = document.getElementById('s-kelas').value;
+            const nis = document.getElementById('s-nis').value;
+            
+            const btn = this.querySelector('button');
+            btn.disabled = true;
+
+            const payload = { target: "santri", nis, nama, kelas };
+
+            try {
+                await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) });
+                databaseSantri[nama] = kelas;
+                localStorage.setItem('profil_santri', JSON.stringify(databaseSantri));
+                alert("✅ Tersimpan di Cloud & Lokal!");
+                this.reset();
+                updateDatalistSantri();
+                renderTableSantri();
+            } catch (err) {
+                alert("Gagal koneksi cloud, data disimpan lokal saja.");
+                databaseSantri[nama] = kelas;
+                localStorage.setItem('profil_santri', JSON.stringify(databaseSantri));
+            } finally {
+                btn.disabled = false;
+            }
+        };
+
+        document.getElementById('input-nama').addEventListener('input', function() {
+            const nama = this.value;
+            document.getElementById('input-kelas').value = databaseSantri[nama] || "";
+        });
+
+        function updateSubJenis() {
+            const kategori = document.getElementById('input-kategori').value;
+            const jenisSelect = document.getElementById('input-jenis');
+            const poinInput = document.getElementById('input-poin-manual');
+            const selectedOpt = document.getElementById('input-kategori').options[document.getElementById('input-kategori').selectedIndex];
+            poinInput.value = selectedOpt.getAttribute('data-poin') || 0;
+            jenisSelect.innerHTML = '<option value="">-- Pilih Jenis --</option>';
+            if (daftarPelanggaran[kategori]) {
+                daftarPelanggaran[kategori].forEach(item => {
+                    jenisSelect.innerHTML += `<option value="${item}">${item}</option>`;
+                });
+            }
+        }
+
+        function updateDatalistSantri() {
+            const dl = document.getElementById('list-santri');
+            dl.innerHTML = Object.keys(databaseSantri).map(nama => `<option value="${nama}">`).join('');
+        }
+
+        document.getElementById('form-pelanggaran').onsubmit = async function(e) {
+            e.preventDefault();
+            const btn = this.querySelector('button[type="submit"]');
+            btn.disabled = true;
+
+            const record = {
+                target: "pelanggaran",
+                id: Date.now(),
+                waktu: new Date().toLocaleDateString('id-ID'),
+                timestamp: new Date().toLocaleString('id-ID'),
+                nama: document.getElementById('input-nama').value,
+                kelas: document.getElementById('input-kelas').value,
+                kategori: document.getElementById('input-kategori').value,
+                jenis: document.getElementById('input-jenis').value,
+                poin: parseInt(document.getElementById('input-poin-manual').value) || 0,
+                kronologi: document.getElementById('input-kronologi').value,
+                pelapor: document.getElementById('input-pelapor').value
+            };
+
+            try {
+                await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(record) });
+                dataPelanggaran.unshift(record);
+                localStorage.setItem('bp_data', JSON.stringify(dataPelanggaran));
+                alert("✅ Laporan Tersimpan di Cloud!");
+                this.reset();
+                updateDashboard();
+                renderTables();
+            } catch (e) {
+                alert("Offline: Tersimpan di lokal.");
+                dataPelanggaran.unshift(record);
+                localStorage.setItem('bp_data', JSON.stringify(dataPelanggaran));
+                updateDashboard();
+                renderTables();
+            } finally {
+                btn.disabled = false;
+            }
+        };
+
+        function updateDashboard() {
+            const total = dataPelanggaran.length;
+            const berat = dataPelanggaran.filter(d => d.kategori === 'Berat').length;
+            const poin = dataPelanggaran.reduce((sum, d) => sum + d.poin, 0);
+
+            document.getElementById('stat-total').innerText = total;
+            document.getElementById('stat-berat').innerText = berat;
+            document.getElementById('stat-poin').innerText = poin;
+
+            const days = [...new Set(dataPelanggaran.map(d => d.waktu))].slice(0, 7).reverse();
+            const counts = days.map(day => dataPelanggaran.filter(d => d.waktu === day).length);
+            lineChart.data.labels = days;
+            lineChart.data.datasets[0].data = counts;
+            lineChart.update();
+
+            const r = dataPelanggaran.filter(d => d.kategori === 'Ringan').length;
+            const s = dataPelanggaran.filter(d => d.kategori === 'Sedang').length;
+            const b = berat;
+            pieChart.data.datasets[0].data = [r, s, b];
+            pieChart.update();
+        }
+
+        function renderTables() {
+            const tableBody = document.getElementById('table-body-input');
+            tableBody.innerHTML = dataPelanggaran.map(d => `
+                <tr class="text-[10px] font-semibold">
+                    <td class="p-3 text-slate-400">${d.timestamp}</td>
+                    <td class="p-3 font-bold text-emerald-800">${d.nama}</td>
+                    <td class="p-3">${d.kelas}</td>
+                    <td class="p-3">${d.kategori}</td>
+                    <td class="p-3"><span class="px-2 py-1 rounded bg-slate-100 text-[9px]">${d.jenis}</span></td>
+                    <td class="p-3 font-black text-red-600">${d.poin}</td>
+                    <td class="p-3">${d.kronologi || '-'}</td>
+                    <td class="p-3">${d.pelapor || '-'}</td>
+                    <td class="p-3 text-center">
+                        <button onclick="hapusData(${d.id})" class="text-red-400 hover:text-red-600"><i data-lucide="trash-2" class="w-3 h-3"></i></button>
+                    </td>
+                </tr>
+            `).join('');
+            lucide.createIcons();
+        }
+
+        function hapusData(id) {
+            if(confirm('Hapus data ini?')) {
+                dataPelanggaran = dataPelanggaran.filter(d => d.id !== id);
+                localStorage.setItem('bp_data', JSON.stringify(dataPelanggaran));
+                updateDashboard();
+                renderTables();
+            }
+        }
+    </script>
+</body> 
+</html>
